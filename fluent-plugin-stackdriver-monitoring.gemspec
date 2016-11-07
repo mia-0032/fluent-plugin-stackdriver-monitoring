@@ -1,10 +1,10 @@
 $:.push File.expand_path('../lib', __FILE__)
 
 Gem::Specification.new do |gem|
-  gem.name        = 'fluent-plugin-stackdriver'
+  gem.name        = 'fluent-plugin-stackdriver-monitoring'
   gem.description = 'Stackdriver Monitoring custom metrics output plugin for Fluentd'
   gem.license     = 'MIT'
-  gem.homepage    = 'https://github.com/mia-0032/fluent-plugin-stackdriver'
+  gem.homepage    = 'https://github.com/mia-0032/fluent-plugin-stackdriver-monitoring'
   gem.summary     = gem.description
   gem.version     = '0.0.1'
   gem.authors     = ['Yoshihiro MIYAI']

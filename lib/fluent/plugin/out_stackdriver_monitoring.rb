@@ -5,8 +5,8 @@ require 'google/protobuf/repeated_field'
 require 'google/protobuf/timestamp_pb'
 
 module Fluent
-  class StackdriverOutput < BufferedOutput
-    Fluent::Plugin.register_output('stackdriver', self)
+  class StackdriverMonitoringOutput < BufferedOutput
+    Fluent::Plugin.register_output('stackdriver_monitoring', self)
 
     config_param :project, :string
     config_section :custom_metrics, required: true, multi: false do
@@ -50,7 +50,7 @@ module Fluent
         point.value = create_typed_value value
         time_series.points.push point
 
-        log.debug "Create time series", time: Time.at(time).to_s, value: value
+        log.debug "Create time series", time: Time.at(time).to_s, value: value, metric_name: @metric_name
         # Only one point can be written per TimeSeries per request.
         @metric_service_api.create_time_series @project_name, [time_series]
       end
@@ -58,11 +58,12 @@ module Fluent
 
     private
     def create_metric_descriptor
-      metric_descriptor = @metric_service_api.get_metric_descriptor(@metric_name)
-
-      if metric_descriptor.is_a? Google::Api::MetricDescriptor
-        log.info "succeed to get metric descripter:#{@metric_name}"
+      begin
+        metric_descriptor = @metric_service_api.get_metric_descriptor(@metric_name)
+        log.info "Succeed to get metric descripter", metric_name: @metric_name
         return metric_descriptor
+      rescue Google::Gax::RetryError
+        log.info "Failed to get metric descripter", metric_name: @metric_name
       end
 
       metric_descriptor = Google::Api::MetricDescriptor.new
@@ -70,7 +71,7 @@ module Fluent
       metric_descriptor.metric_kind = @custom_metrics.metric_kind
       metric_descriptor.value_type = @custom_metrics.value_type
       metric_descriptor = @metric_service_api.create_metric_descriptor(@project_name, metric_descriptor)
-      log.info "succeed to create metric descripter:#{@metric_name}"
+      log.info "Succeed to create metric descripter", metric_name: @metric_name
 
       metric_descriptor
     end
