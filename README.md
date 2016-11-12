@@ -2,9 +2,15 @@
 
 [Stackdriver Monitoring](https://cloud.google.com/monitoring/) custom metrics output plugin for [Fluentd](http://www.fluentd.org/)
 
+## Installation
+
+```shell
+$ gem install fluent-plugin-stackdriver-monitoring
+```
+
 ## Authentication
 
-See [google-cloud-monitoring gem document}(https://github.com/GoogleCloudPlatform/google-cloud-ruby/tree/master/google-cloud-monitoring#setup-authentication).
+See [google-cloud-monitoring gem document](https://github.com/GoogleCloudPlatform/google-cloud-ruby/tree/master/google-cloud-monitoring#setup-authentication).
 
 ## Configuration
 
