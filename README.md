@@ -34,7 +34,7 @@ Sample configuration is below.
 
 - project (string, required)
   - Set your Stackdriver project id.
-- <custom_metrics>
+- custom_metrics
   - key (string, required)
     - Specify field name in your log to send to Stackdriver.
   - type (string, required)
