@@ -1,6 +1,6 @@
 require 'fluent/output'
 require 'google/api/metric_pb'
-require 'google/cloud/monitoring/v3/metric_service_api'
+require 'google/cloud/monitoring/v3/metric_service_client'
 require 'google/protobuf/repeated_field'
 require 'google/protobuf/timestamp_pb'
 
@@ -25,14 +25,14 @@ module Fluent
         raise "custom_metrics.type must start with \"#{TYPE_PREFIX}\""
       end
 
-      @project_name = Google::Cloud::Monitoring::V3::MetricServiceApi.project_path @project
-      @metric_name = Google::Cloud::Monitoring::V3::MetricServiceApi.metric_descriptor_path @project, @custom_metrics.type
+      @project_name = Google::Cloud::Monitoring::V3::MetricServiceClient.project_path @project
+      @metric_name = Google::Cloud::Monitoring::V3::MetricServiceClient.metric_descriptor_path @project, @custom_metrics.type
     end
 
     def start
       super
 
-      @metric_service_api = Google::Cloud::Monitoring::V3::MetricServiceApi.new
+      @metric_service_client = Google::Cloud::Monitoring::V3::MetricServiceClient.new
       @metric_descriptor = create_metric_descriptor
     end
 
@@ -52,14 +52,14 @@ module Fluent
 
         log.debug "Create time series", time: Time.at(time).to_s, value: value, metric_name: @metric_name
         # Only one point can be written per TimeSeries per request.
-        @metric_service_api.create_time_series @project_name, [time_series]
+        @metric_service_client.create_time_series @project_name, [time_series]
       end
     end
 
     private
     def create_metric_descriptor
       begin
-        metric_descriptor = @metric_service_api.get_metric_descriptor(@metric_name)
+        metric_descriptor = @metric_service_client.get_metric_descriptor(@metric_name)
         log.info "Succeed to get metric descripter", metric_name: @metric_name
         return metric_descriptor
       rescue Google::Gax::RetryError
@@ -70,7 +70,7 @@ module Fluent
       metric_descriptor.type = @custom_metrics.type
       metric_descriptor.metric_kind = @custom_metrics.metric_kind
       metric_descriptor.value_type = @custom_metrics.value_type
-      metric_descriptor = @metric_service_api.create_metric_descriptor(@project_name, metric_descriptor)
+      metric_descriptor = @metric_service_client.create_metric_descriptor(@project_name, metric_descriptor)
       log.info "Succeed to create metric descripter", metric_name: @metric_name
 
       metric_descriptor
