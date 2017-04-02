@@ -6,7 +6,7 @@ Gem::Specification.new do |gem|
   gem.license     = 'MIT'
   gem.homepage    = 'https://github.com/mia-0032/fluent-plugin-stackdriver-monitoring'
   gem.summary     = gem.description
-  gem.version     = '0.0.1'
+  gem.version     = '0.0.2'
   gem.authors     = ['Yoshihiro MIYAI']
   gem.email       = 'msparrow17@gmail.com'
   gem.has_rdoc    = false
