@@ -45,20 +45,7 @@ class StackdriverMonitoringOutputTest < Test::Unit::TestCase
       end
     end
 
-    test 'time_interval must be greater than 0 if metric_kind is set to DELTA or CUMULATIVE' do
-      assert_raises Fluent::ConfigError do
-        create_driver(%[
-          project project-test
-          <custom_metrics>
-            key hoge_key
-            type invalid_type
-            metric_kind DELTA
-            value_type INT64
-            time_interval 0s
-          </custom_metrics>
-        ])
-      end
-
+    test 'time_interval must be greater than 0 if metric_kind is set to CUMULATIVE' do
       assert_raises Fluent::ConfigError do
         create_driver(%[
           project project-test
@@ -68,6 +55,20 @@ class StackdriverMonitoringOutputTest < Test::Unit::TestCase
             metric_kind CUMULATIVE
             value_type INT64
             time_interval 0s
+          </custom_metrics>
+        ])
+      end
+    end
+
+    test 'custom metric does not support BOOL value type if metric_kind is set to CUMULATIVE' do
+      assert_raises Fluent::ConfigError do
+        create_driver(%[
+          project project-test
+          <custom_metrics>
+            key hoge_key
+            type invalid_type
+            metric_kind CUMULATIVE
+            value_type BOOL
           </custom_metrics>
         ])
       end

@@ -41,13 +41,15 @@ Sample configuration is below.
     - Set name of descriptor. It must start with `custom.googleapis.com/`.
   - metric_kind(enum, required)
     - See [metric kind](https://cloud.google.com/monitoring/api/ref_v3/rest/v3/projects.metricDescriptors#MetricKind).
-    - You can specify `GAUGE`, `DELTA` or `CUMULATIVE`.
+    - You can specify `GAUGE` or `CUMULATIVE`.
+    - Custom metric does not support `DELTA`. See [here](https://cloud.google.com/monitoring/api/v3/metrics?hl=en#metric-kinds).
   - value_type(enum, required)
     - See [value type](https://cloud.google.com/monitoring/api/ref_v3/rest/v3/projects.metricDescriptors#valuetype).
-    - You can specify `BOOL`, `INT64`, `DOUBLE` or `STRING`.
+    - You can specify `BOOL`, `INT64` or `DOUBLE` if metric_kind is `GAUGE`. And `INT64` or `DOUBLE` can be specified if metric_kind is `CUMULATIVE`.
+    - Custom metric does not support `MONEY` and `STRING`. See [here](https://cloud.google.com/monitoring/api/v3/metrics?hl=en#metric-kinds).
   - time_interval(time, optional)
     - This param is used as the difference between start time and end time.
-    - It must be greater than 0s if metric_kind is set to DELTA or CUMULATIVE.
+    - It must be greater than 0s if metric_kind is set to `CUMULATIVE`.
 
 ## TODO
 
