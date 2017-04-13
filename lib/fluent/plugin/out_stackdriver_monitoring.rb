@@ -14,6 +14,7 @@ module Fluent
       config_param :type, :string
       config_param :metric_kind, :enum, list: [:GAUGE, :DELTA, :CUMULATIVE]
       config_param :value_type, :enum, list: [:BOOL, :INT64, :DOUBLE, :STRING] # todo: implement :DISTRIBUTION, :MONEY
+      config_param :time_interval, :time, default: 0
     end
 
     TYPE_PREFIX = 'custom.googleapis.com/'.freeze
@@ -22,7 +23,11 @@ module Fluent
       super
 
       unless @custom_metrics.type.start_with? TYPE_PREFIX
-        raise "custom_metrics.type must start with \"#{TYPE_PREFIX}\""
+        raise Fluent::ConfigError.new "custom_metrics.type must start with \"#{TYPE_PREFIX}\""
+      end
+
+      if @custom_metrics.metric_kind != :GAUGE && @custom_metrics.time_interval == 0
+        raise Fluent::ConfigError.new "time_interval must be greater than 0 if metric_kind is set to DELTA or CUMULATIVE."
       end
 
       @project_name = Google::Cloud::Monitoring::V3::MetricServiceClient.project_path @project
@@ -46,7 +51,7 @@ module Fluent
         value = record[@custom_metrics.key]
 
         point = Google::Monitoring::V3::Point.new
-        point.interval = create_time_interval time
+        point.interval = create_time_interval time, @custom_metrics.time_interval
         point.value = create_typed_value value
         time_series.points.push point
 
@@ -89,9 +94,9 @@ module Fluent
       time_series
     end
 
-    def create_time_interval(time)
+    def create_time_interval(time, interval)
       time_interval = Google::Monitoring::V3::TimeInterval.new
-      time_interval.start_time = Google::Protobuf::Timestamp.new seconds: time
+      time_interval.start_time = Google::Protobuf::Timestamp.new seconds: (time - interval)
       time_interval.end_time = Google::Protobuf::Timestamp.new seconds: time
 
       time_interval

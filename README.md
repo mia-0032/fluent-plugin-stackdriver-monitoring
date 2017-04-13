@@ -45,6 +45,9 @@ Sample configuration is below.
   - value_type(enum, required)
     - See [value type](https://cloud.google.com/monitoring/api/ref_v3/rest/v3/projects.metricDescriptors#valuetype).
     - You can specify `BOOL`, `INT64`, `DOUBLE` or `STRING`.
+  - time_interval(time, optional)
+    - This param is used as the difference between start time and end time.
+    - It must be greater than 0s if metric_kind is set to DELTA or CUMULATIVE.
 
 ## TODO
 
