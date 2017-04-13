@@ -115,7 +115,7 @@ module Fluent
       typed_value = Google::Monitoring::V3::TypedValue.new
       case @metric_descriptor.value_type
       when :BOOL
-        typed_value.bool_value = value.to_bool
+        typed_value.bool_value = !!value
       when :INT64
         typed_value.int64_value = value.to_i
       when :DOUBLE
