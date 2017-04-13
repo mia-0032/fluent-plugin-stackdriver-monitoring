@@ -12,8 +12,8 @@ module Fluent
     config_section :custom_metrics, required: true, multi: false do
       config_param :key, :string
       config_param :type, :string
-      config_param :metric_kind, :enum, list: [:GAUGE, :DELTA, :CUMULATIVE]
-      config_param :value_type, :enum, list: [:BOOL, :INT64, :DOUBLE, :STRING] # todo: implement :DISTRIBUTION, :MONEY
+      config_param :metric_kind, :enum, list: [:GAUGE, :CUMULATIVE]
+      config_param :value_type, :enum, list: [:BOOL, :INT64, :DOUBLE] # todo: implement :DISTRIBUTION
       config_param :time_interval, :time, default: 0
     end
 
@@ -22,12 +22,17 @@ module Fluent
     def configure(conf)
       super
 
-      unless @custom_metrics.type.start_with? TYPE_PREFIX
+      unless is_custom_metric? @custom_metrics.type
         raise Fluent::ConfigError.new "custom_metrics.type must start with \"#{TYPE_PREFIX}\""
       end
 
-      if @custom_metrics.metric_kind != :GAUGE && @custom_metrics.time_interval == 0
-        raise Fluent::ConfigError.new "time_interval must be greater than 0 if metric_kind is set to DELTA or CUMULATIVE."
+      if @custom_metrics.metric_kind == :CUMULATIVE
+        if @custom_metrics.time_interval == 0
+          raise Fluent::ConfigError.new 'time_interval must be greater than 0 if metric_kind is set to CUMULATIVE'
+        end
+        if @custom_metrics.value_type == :BOOL
+          raise Fluent::ConfigError.new 'custom metric does not support BOOL value type if metric_kind is set to CUMULATIVE'
+        end
       end
 
       @project_name = Google::Cloud::Monitoring::V3::MetricServiceClient.project_path @project
@@ -62,6 +67,10 @@ module Fluent
     end
 
     private
+    def is_custom_metric?(metric_type)
+      metric_type.start_with? TYPE_PREFIX
+    end
+
     def create_metric_descriptor
       begin
         metric_descriptor = @metric_service_client.get_metric_descriptor(@metric_name)
@@ -106,13 +115,11 @@ module Fluent
       typed_value = Google::Monitoring::V3::TypedValue.new
       case @metric_descriptor.value_type
       when :BOOL
-        typed_value.bool_value = value.to_bool
+        typed_value.bool_value = !!value
       when :INT64
         typed_value.int64_value = value.to_i
       when :DOUBLE
         typed_value.double_value = value.to_f
-      when :STRING
-        typed_value.string_value = value.to_s
       else
         raise 'Unknown value_type!'
       end
