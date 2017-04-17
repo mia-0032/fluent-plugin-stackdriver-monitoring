@@ -15,6 +15,7 @@ module Fluent
     end
 
     TYPE_PREFIX = 'custom.googleapis.com/'.freeze
+    PAST_DATA_TIME_LIMIT = 60 * 60 * 24  # 24h
 
     def configure(conf)
       super
@@ -45,7 +46,14 @@ module Fluent
     end
 
     def write(chunk)
+      current_time = Time.now.to_i
+
       chunk.msgpack_each do |tag, time, record|
+        if (current_time - time) >= PAST_DATA_TIME_LIMIT
+          log.warn 'Drop data point because it cannot be written more than 24h in the past', time: Time.at(time).to_s, metric_name: @metric_name
+          next
+        end
+
         value = record[@custom_metrics.key]
         start_time = time - @custom_metrics.time_interval
         @client.write start_time, time, value

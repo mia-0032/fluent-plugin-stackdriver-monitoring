@@ -108,5 +108,14 @@ class StackdriverMonitoringOutputTest < Test::Unit::TestCase
       d.emit({'test_key' => 1}, now)
       d.run
     end
+
+    test 'past data are dropped' do
+      past_time = Time.now.to_i - (60 * 60 * 24 + 1)
+      @client.write.times(0)
+
+      d = create_driver
+      d.emit({'test_key' => 1}, past_time)
+      d.run
+    end
   end
 end
