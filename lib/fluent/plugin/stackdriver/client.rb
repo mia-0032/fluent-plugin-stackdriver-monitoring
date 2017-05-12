@@ -40,7 +40,7 @@ module Fluent
           if retry_count >= RETRY_LIMIT
             raise ex
           end
-          log.info "Google::Gax::RetryError occured, so refreshing client", error_msg: ex.to_s
+          log.info "Google::Gax::RetryError occured", error_msg: ex.to_s
           # The Stackdriver API recommends sending at most 1 TimeSeries value every 30s
           sleep 30
           retry
